@@ -36,17 +36,26 @@ urlpatterns = [
 
 ```python
 MCP_DISCOVERY = {
-    'NAME':        'My Site MCP Server',
-    'ENDPOINT':    'https://mysite.com/mcp/',
-    'DESCRIPTION': 'Natural language description of the server',
-    'AUTH':        'none',           # none | apikey | oauth2
-    'CAPABILITIES': ['tools', 'resources'],
-    'CATEGORIES':  ['e-commerce', 'fashion'],
-    'LANGUAGES':   ['it', 'en'],
-    'CONTACT':     'api@mysite.com',
-    'DOCS':        'https://mysite.com/mcp/docs/',
-    'EXPIRES_DAYS': 90,              # manifest expiry in days
-    'CRAWL':       True,             # False to opt out of indexing
+    'NAME':             'My Site MCP Server',
+    'ENDPOINT':         'https://mysite.com/mcp/',
+    'DESCRIPTION':      'Natural language description of the server',
+    'AUTH':             'none',         # none | apikey | oauth2
+    'CAPABILITIES':     ['tools', 'resources'],
+    'CATEGORIES':       ['e-commerce', 'fashion'],
+    'LANGUAGES':        ['it', 'en'],
+    'CONTACT':          'api@mysite.com',
+    'DOCS':             'https://mysite.com/mcp/docs/',
+    'EXPIRES_DAYS':     90,             # manifest expiry in days
+    'CRAWL':            True,           # False to opt out of indexing
+
+    # Optional — primitive previews (draft-03 Section 6.10)
+    # Use a list for static tools, or 'dynamic' for dynamic ones
+    'TOOLS_PREVIEW': [
+        {'name': 'search_products', 'description': 'Search by category'},
+        {'name': 'check_stock',     'description': 'Real-time availability'},
+    ],
+    'RESOURCES_PREVIEW': 'dynamic',
+    'PROMPTS_PREVIEW':   'dynamic',
 }
 ```
 
@@ -56,6 +65,25 @@ Auto-detected if not set:
 - **Language** — from `LANGUAGE_CODE` setting
 
 ## Example output
+
+Minimal (no configuration):
+
+```json
+{
+  "mcp_version": "2025-06-18",
+  "name": "My Shop MCP Server",
+  "endpoint": "https://myshop.com/mcp/",
+  "transport": "http",
+  "auth": { "type": "none" },
+  "capabilities": ["tools", "resources"],
+  "languages": ["it"],
+  "last_updated": "2026-03-25T00:00:00+00:00",
+  "expires": "2026-09-23T00:00:00+00:00",
+  "crawl": true
+}
+```
+
+With `tools_preview` (draft-03 Section 6.10):
 
 ```json
 {
@@ -67,25 +95,36 @@ Auto-detected if not set:
   "capabilities": ["tools", "resources"],
   "categories": ["e-commerce"],
   "languages": ["it"],
-  "last_updated": "2026-03-25T00:00:00+00:00",
   "expires": "2026-09-23T00:00:00+00:00",
-  "crawl": true
+  "crawl": true,
+  "tools_preview": [
+    {
+      "name": "search_products",
+      "description": "Search products by category and material"
+    },
+    {
+      "name": "check_stock",
+      "description": "Check real-time warehouse availability"
+    }
+  ],
+  "resources_preview": "dynamic",
+  "prompts_preview": "dynamic"
 }
 ```
 
 ## Security
 
 - **Endpoint domain validation** — custom endpoint MUST be on same
-  domain or subdomain of your site. Invalid endpoints fall back to
-  default. (draft-03 Section 6.8)
-- **Expires field** — manifest declares its own expiry date so clients
-  know when to re-fetch. (draft-03 Section 6.9)
+  domain or subdomain. Invalid endpoints fall back to default.
+  (draft-03 Section 6.8)
+- **Expires field** — manifest declares its own expiry date.
+  (draft-03 Section 6.9)
 
 ## Changelog
 
 ### v0.2.0
-- Security: endpoint domain validation
-- Security: `expires` field with configurable `EXPIRES_DAYS`
+- Security: endpoint domain validation (Section 6.8)
+- Security: `expires` field with `EXPIRES_DAYS` setting (Section 6.9)
 
 ### v0.1.0
 - Initial release
