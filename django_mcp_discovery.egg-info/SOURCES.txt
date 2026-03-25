@@ -1,0 +1,12 @@
+README.md
+pyproject.toml
+django_mcp_discovery.egg-info/PKG-INFO
+django_mcp_discovery.egg-info/SOURCES.txt
+django_mcp_discovery.egg-info/dependency_links.txt
+django_mcp_discovery.egg-info/requires.txt
+django_mcp_discovery.egg-info/top_level.txt
+mcp_discovery/__init__.py
+mcp_discovery/apps.py
+mcp_discovery/manifest.py
+mcp_discovery/urls.py
+mcp_discovery/views.py
