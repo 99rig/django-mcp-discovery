@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: django-mcp-discovery
-Version: 0.1.0
+Version: 0.2.0
 Summary: Exposes /.well-known/mcp-server on Django projects for MCP agent discovery. Implements draft-serra-mcp-discovery-uri.
 Author-email: Mumble Group <support@mumble.group>
 License: GPL-2.0-or-later
