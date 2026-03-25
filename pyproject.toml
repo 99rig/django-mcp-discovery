@@ -9,7 +9,7 @@ description = "Exposes /.well-known/mcp-server on Django projects for MCP agent 
 readme = "README.md"
 license = {text = "GPL-2.0-or-later"}
 authors = [
-    {name = "Mumble Group", email = "marco.serra@mumble.group"}
+    {name = "Mumble Group", email = "support@mumble.group"}
 ]
 keywords = ["mcp", "django", "discovery", "ai", "well-known"]
 classifiers = [
