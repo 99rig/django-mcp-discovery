@@ -69,6 +69,12 @@ def build_manifest():
     manifest['last_updated'] = timezone.now().isoformat()
     manifest['crawl'] = config.get('CRAWL', True)
 
+    # Primitive previews (MAY) — draft-serra-mcp-discovery-uri-03 Section 6.10
+    for key in ('TOOLS_PREVIEW', 'RESOURCES_PREVIEW', 'PROMPTS_PREVIEW'):
+        value = config.get(key)
+        if value is not None:
+            manifest[key.lower()] = value
+
     return manifest
 
 

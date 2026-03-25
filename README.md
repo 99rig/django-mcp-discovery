@@ -122,6 +122,10 @@ With `tools_preview` (draft-03 Section 6.10):
 
 ## Changelog
 
+### v0.3.0
+- Added `tools_preview`, `resources_preview`, `prompts_preview` fields (draft-03 Section 6.10)
+- Use a list for static previews, or 'dynamic' for dynamic ones
+
 ### v0.2.0
 - Security: endpoint domain validation (Section 6.8)
 - Security: `expires` field with `EXPIRES_DAYS` setting (Section 6.9)
