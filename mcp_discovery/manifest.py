@@ -2,18 +2,39 @@ from django.conf import settings
 from django.utils import timezone
 
 
+def _validate_endpoint_domain(endpoint, site_url):
+    """
+    Security: endpoint host MUST match or be subdomain of site host.
+    draft-serra-mcp-discovery-uri-02 Section 6.8
+    """
+    from urllib.parse import urlparse
+    if not endpoint or not site_url:
+        return True
+    site_host = urlparse(site_url).hostname or ''
+    endpoint_host = urlparse(endpoint).hostname or ''
+    if not endpoint_host or not site_host:
+        return True
+    return endpoint_host == site_host or endpoint_host.endswith('.' + site_host)
+
+
 def build_manifest():
     """
     Build the MCP manifest dict from Django settings.
     All fields are optional except mcp_version, name, endpoint, transport.
+    Implements draft-serra-mcp-discovery-uri-02.
     """
     config = getattr(settings, 'MCP_DISCOVERY', {})
 
     # Required fields
+    site_url = getattr(settings, 'SITE_URL', None)
+    custom_endpoint = config.get('ENDPOINT')
+    if custom_endpoint and not _validate_endpoint_domain(custom_endpoint, site_url or _get_default_endpoint()):
+        # Security: reject endpoint on unrelated domain, fall back to default
+        custom_endpoint = None
     manifest = {
         'mcp_version': '2025-06-18',
         'name': config.get('NAME', _get_site_name()),
-        'endpoint': config.get('ENDPOINT', _get_default_endpoint()),
+        'endpoint': custom_endpoint or _get_default_endpoint(),
         'transport': config.get('TRANSPORT', 'http'),
     }
 
