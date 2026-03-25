@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "django-mcp-discovery"
+version = "0.1.0"
+description = "Exposes /.well-known/mcp-server on Django projects for MCP agent discovery. Implements draft-serra-mcp-discovery-uri."
+readme = "README.md"
+license = {text = "GPL-2.0-or-later"}
+authors = [
+    {name = "Mumble Group", email = "marco.serra@mumble.group"}
+]
+keywords = ["mcp", "django", "discovery", "ai", "well-known"]
+classifiers = [
+    "Framework :: Django",
+    "Framework :: Django :: 4.0",
+    "Framework :: Django :: 4.1",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "Django>=4.0",
+]
+
+[project.urls]
+Homepage = "https://mcpstandard.dev"
+Repository = "https://github.com/99rig/django-mcp-discovery"
+"IETF Draft" = "https://datatracker.ietf.org/doc/draft-serra-mcp-discovery-uri/"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mcp_discovery*"]
