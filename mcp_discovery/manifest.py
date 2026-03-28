@@ -49,8 +49,12 @@ def build_manifest():
     if custom_endpoint and not _validate_endpoint_domain(custom_endpoint, site_url or _get_default_endpoint()):
         # Security: reject endpoint on unrelated domain, fall back to default
         custom_endpoint = None
+
+    # MCP protocol version — configurable via MCP_DISCOVERY['MCP_VERSION'] or MCP_PROTOCOL_VERSION
+    mcp_version = config.get('MCP_VERSION') or getattr(settings, 'MCP_PROTOCOL_VERSION', '2025-06-18')
+
     manifest = {
-        'mcp_version': '2025-06-18',
+        'mcp_version': mcp_version,
         'name': config.get('NAME', _get_site_name()),
         'endpoint': custom_endpoint or _get_default_endpoint(),
         'transport': config.get('TRANSPORT', 'http'),
