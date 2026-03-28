@@ -2,10 +2,28 @@ from django.conf import settings
 from django.utils import timezone
 
 
+# Lista globale dei tool preview registrati runtime (django-mcp-server integration)
+_tool_previews = []
+
+
+def update_tools_preview(tool: dict):
+    """
+    Called by django-mcp-server when a tool is registered via @mcp_tool.
+    Adds the tool to the runtime tools_preview list.
+
+    Args:
+        tool: dict with at minimum {"name": str, "description": str}
+    """
+    global _tool_previews
+    # Avoid duplicates
+    if not any(t.get("name") == tool.get("name") for t in _tool_previews):
+        _tool_previews.append(tool)
+
+
 def _validate_endpoint_domain(endpoint, site_url):
     """
     Security: endpoint host MUST match or be subdomain of site host.
-    draft-serra-mcp-discovery-uri-02 Section 6.8
+    draft-serra-mcp-discovery-uri-04 Section 6.8
     """
     from urllib.parse import urlparse
     if not endpoint or not site_url:
@@ -21,7 +39,7 @@ def build_manifest():
     """
     Build the MCP manifest dict from Django settings.
     All fields are optional except mcp_version, name, endpoint, transport.
-    Implements draft-serra-mcp-discovery-uri-02.
+    Implements draft-serra-mcp-discovery-uri-04.
     """
     config = getattr(settings, 'MCP_DISCOVERY', {})
 
@@ -43,11 +61,63 @@ def build_manifest():
     if description:
         manifest['description'] = description
 
-    auth_type = config.get('AUTH', 'none')
-    manifest['auth'] = {'type': auth_type}
+    # Auth — draft-04 new structured format
+    auth_config = config.get('AUTH', {})
+    if isinstance(auth_config, str):
+        # Retrocompatibility: AUTH = 'none' | 'apikey' | 'oauth2'
+        auth_config = {'required': False, 'methods': [auth_config]}
+
+    auth_obj = {
+        'required': auth_config.get('required', False),
+        'methods': auth_config.get('methods', ['none']),
+    }
+    # endpoint required if methods includes 'bearer' or 'oauth2'
+    if any(m in auth_obj['methods'] for m in ('bearer', 'oauth2')):
+        endpoint = auth_config.get('endpoint')
+        if endpoint:
+            auth_obj['endpoint'] = endpoint
+    # scopes required if oauth2
+    if 'oauth2' in auth_obj['methods']:
+        scopes = auth_config.get('scopes', [])
+        if scopes:
+            auth_obj['scopes'] = scopes
+
+    manifest['auth'] = auth_obj
 
     capabilities = config.get('CAPABILITIES', ['tools', 'resources'])
     manifest['capabilities'] = capabilities
+
+    # trust_class — draft-04 new field
+    trust_class = config.get('TRUST_CLASS', None)
+    if trust_class:
+        manifest['trust_class'] = trust_class
+
+        # sandbox: expires REQUIRED
+        if trust_class == 'sandbox':
+            from datetime import timedelta
+            expires_days = config.get('EXPIRES_DAYS', 30)
+            manifest['expires'] = (timezone.now() + timedelta(days=expires_days)).isoformat()
+
+        # regulated: compliance + logging + cache_ttl REQUIRED
+        if trust_class == 'regulated':
+            compliance = config.get('COMPLIANCE', {})
+            if not compliance.get('jurisdiction'):
+                raise ValueError(
+                    "MCP_DISCOVERY: trust_class='regulated' requires "
+                    "COMPLIANCE = {'jurisdiction': 'EU', ...}"
+                )
+            manifest['compliance'] = compliance
+
+            logging_config = config.get('LOGGING', {'required': True})
+            manifest['logging'] = logging_config
+
+            manifest['cache_ttl'] = config.get('CACHE_TTL', 300)
+
+    # cache_ttl — draft-04 MAY for all (regulated already handled above)
+    if trust_class != 'regulated':
+        cache_ttl = config.get('CACHE_TTL', None)
+        if cache_ttl:
+            manifest['cache_ttl'] = cache_ttl
 
     # MAY fields
     categories = config.get('CATEGORIES', [])
@@ -69,11 +139,15 @@ def build_manifest():
     manifest['last_updated'] = timezone.now().isoformat()
     manifest['crawl'] = config.get('CRAWL', True)
 
-    # Primitive previews (MAY) — draft-serra-mcp-discovery-uri-03 Section 6.10
+    # Primitive previews (MAY) — draft-serra-mcp-discovery-uri-04 Section 6.10
     for key in ('TOOLS_PREVIEW', 'RESOURCES_PREVIEW', 'PROMPTS_PREVIEW'):
         value = config.get(key)
         if value is not None:
             manifest[key.lower()] = value
+
+    # Runtime tool previews from django-mcp-server (if not already configured statically)
+    if 'tools_preview' not in manifest and _tool_previews:
+        manifest['tools_preview'] = _tool_previews
 
     return manifest
 
