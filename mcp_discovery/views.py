@@ -20,5 +20,5 @@ class MCPWellKnownView(View):
         response['Cache-Control'] = 'max-age=3600, public'
         response['Access-Control-Allow-Origin'] = '*'
         response['Access-Control-Allow-Methods'] = 'GET'
-        response['X-MCP-Discovery'] = 'draft-serra-mcp-discovery-uri-01'
+        response['X-MCP-Discovery'] = 'draft-serra-mcp-discovery-uri-04'
         return response
