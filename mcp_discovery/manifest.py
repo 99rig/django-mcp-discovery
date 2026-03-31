@@ -66,7 +66,13 @@ def build_manifest():
         manifest['description'] = description
 
     # Auth — draft-04 new structured format
-    auth_config = config.get('AUTH', {})
+    auth_config = config.get('AUTH', None)
+    if auth_config is None:
+        # Auto-detect MCP_AUTH_BACKEND from django-mcp-server if not explicitly configured
+        if getattr(settings, 'MCP_AUTH_BACKEND', None):
+            auth_config = {'required': True, 'methods': ['bearer']}
+        else:
+            auth_config = {}
     if isinstance(auth_config, str):
         # Retrocompatibility: AUTH = 'none' | 'apikey' | 'oauth2'
         auth_config = {'required': False, 'methods': [auth_config]}
